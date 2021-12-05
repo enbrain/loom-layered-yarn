@@ -25,7 +25,7 @@ Layered mappings for Yarn.
 +                 useModule("com.github.enbrain:loom-layered-yarn:${requested.version}")
 +             }
 +         }
-+   }
++     }
   }
 ```
 
