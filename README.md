@@ -2,6 +2,32 @@
 Layered mappings for Yarn.
 
 ## Usage Example
+`settings.gradle`:
+
+```diff
+  pluginManagement {
+      repositories {
+          maven {
+              name = 'Fabric'
+              url = 'https://maven.fabricmc.net/'
+          }
++         maven {
++             name = 'JitPack'
++             url = 'https://jitpack.io/'
++         }
+          mavenCentral()
+          gradlePluginPortal()
+      }
++     resolutionStrategy {
++         eachPlugin {
++             if (requested.id.id == 'io.github.enbrain.loom-layered-yarn') {
++                 useModule("com.github.enbrain:loom-layered-yarn:${requested.version}")
++             }
++         }
++   }
+  }
+```
+
 `build.gradle`:
 
 ```diff
