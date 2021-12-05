@@ -1,7 +1,8 @@
 # loom-layered-yarn
 Layered mappings for Yarn.
 
-## Usage Example
+## How to setup for use
+
 `settings.gradle`:
 
 ```diff
@@ -33,29 +34,32 @@ Layered mappings for Yarn.
 ```diff
   plugins {
       id 'fabric-loom' version '0.10-SNAPSHOT'
-+     id 'io.github.enbrain.loom-layered-yarn' version '0.1.0'
++     id 'io.github.enbrain.loom-layered-yarn' version '0.2.0'
       id 'maven-publish'
-  }
-
-  dependencies {
-      minecraft "com.mojang:minecraft:${project.minecraft_version}"
--     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-+     mappings loom.layered() {
-+         // Uses `snapshot_yarn_mappings` whenever possible, fallbacks to `yarn_mapping`
-+         addLayer(loomLayeredYarn.yarn("net.fabricmc:yarn:${project.yarn_mappings}:v2"))
-+         addLayer(loomLayeredYarn.yarn("net.fabricmc:yarn:${project.snapshot_yarn_mappings}:v2"))
-+     }
-      modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
   }
 ```
 
-`gradle.properties`:
+## Examples
 
-```diff
-  # Fabric Properties
-      # check these on https://fabricmc.net/versions.html
-      minecraft_version=1.17.1
-      yarn_mappings=1.17.1+build.65
-+     snapshot_yarn_mappings=1.18.1-pre1+build.4
-      loader_version=0.12.8
+### Apply `1.18.1-pre1+build.4` whenever possible, fallback to `1.17.1+build.65`
+
+`build.gradle`:
+
+```groovy
+mappings loom.layered() {
+    addLayer(loomLayeredYarn.yarn("net.fabricmc:yarn:1.17.1+build.65:v2"))
+    addLayer(loomLayeredYarn.yarn("net.fabricmc:yarn:1.18.1-pre1+build.4:v2"))
+}
+```
+
+### Apply [Yarn PR #2903](https://github.com/FabricMC/yarn/pull/2903) and [Yarn PR #2895](https://github.com/FabricMC/yarn/pull/2895) on top of `1.18.1-pre1+build.4`
+
+```groovy
+
+mappings loom.layered() {
+    addLayer(loomLayeredYarn.yarn("net.fabricmc:yarn:1.18.1-pre1+build.4:v2"))
+    // repo, branch, base
+    addLayer(loomLayeredYarn.githubDiff("apple502j/yarn", "1.18.1-pre1-collision", "net.fabricmc:yarn:1.18.1-pre1+build.4:v2"))
+    addLayer(loomLayeredYarn.githubDiff("haykam821/yarn", "gameoptions-key-suffix", "net.fabricmc:yarn:1.18+build.1:v2"))
+}
 ```
