@@ -6,14 +6,17 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
 import net.fabricmc.mappingio.tree.MappingTreeView.ElementMappingView;
 
 public class MappingDiffVisitor extends ForwardingMappingVisitor {
     private final MappingTree base;
+    private final int baseNamedId;
 
-    public MappingDiffVisitor(MappingVisitor next, MappingTree base) {
+    public MappingDiffVisitor(MappingVisitor next, MappingTree base, String matchNs) {
         super(next);
         this.base = base;
+        this.baseNamedId = base.getNamespaceId(matchNs);
     }
 
     private String currentClass = null;
@@ -58,12 +61,16 @@ public class MappingDiffVisitor extends ForwardingMappingVisitor {
             case FIELD -> base.getField(this.currentClass, this.currentFieldName, this.currentFieldDesc);
             case METHOD -> base.getMethod(this.currentClass, this.currentMethodName,
                     this.currentMethodDesc);
-            case METHOD_ARG -> base.getMethod(this.currentClass, this.currentMethodName,
-                    this.currentMethodDesc).getArg(this.currentArgPos, this.currentLvIndex, null);
+            case METHOD_ARG -> {
+                MethodMapping method = base.getMethod(this.currentClass, this.currentMethodName,
+                        this.currentMethodDesc);
+
+                yield method == null ? null : method.getArg(this.currentArgPos, this.currentLvIndex, null);
+            }
             default -> throw new UnsupportedOperationException("Unsupported targetKind: " + targetKind);
         };
 
-        if (!element.getComment().equals(comment)) {
+        if (element == null || !element.getComment().equals(comment)) {
             next.visitComment(targetKind, comment);
         }
     }
@@ -75,12 +82,16 @@ public class MappingDiffVisitor extends ForwardingMappingVisitor {
             case FIELD -> base.getField(this.currentClass, this.currentFieldName, this.currentFieldDesc);
             case METHOD -> base.getMethod(this.currentClass, this.currentMethodName,
                     this.currentMethodDesc);
-            case METHOD_ARG -> base.getMethod(this.currentClass, this.currentMethodName,
-                    this.currentMethodDesc).getArg(this.currentArgPos, this.currentLvIndex, null);
+            case METHOD_ARG -> {
+                MethodMapping method = base.getMethod(this.currentClass, this.currentMethodName,
+                        this.currentMethodDesc);
+
+                yield method == null ? null : method.getArg(this.currentArgPos, this.currentLvIndex, null);
+            }
             default -> throw new UnsupportedOperationException("Unsupported targetKind: " + targetKind);
         };
 
-        if (!element.getDstName(namespace).equals(name)) {
+        if (element == null || !element.getDstName(this.baseNamedId).equals(name)) {
             next.visitDstName(targetKind, namespace, name);
         }
     }

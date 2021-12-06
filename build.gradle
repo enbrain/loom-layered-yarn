@@ -10,6 +10,7 @@ sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
 repositories {
+    mavenCentral()
     maven {
         url = "https://maven.fabricmc.net"
     }
@@ -18,6 +19,8 @@ repositories {
 dependencies {
     compileOnly "net.fabricmc:fabric-loom:0.10.63"
     implementation "net.fabricmc:mapping-io:0.2.1"
+
+    compileOnly 'org.jetbrains:annotations:23.0.0'
 }
 
 gradlePlugin {

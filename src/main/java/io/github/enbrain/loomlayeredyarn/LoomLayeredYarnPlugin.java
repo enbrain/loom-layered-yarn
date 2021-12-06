@@ -2,9 +2,13 @@ package io.github.enbrain.loomlayeredyarn;
 
 import java.nio.file.Path;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
 
+import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import net.fabricmc.loom.api.mappings.layered.spec.FileSpec;
 import net.fabricmc.loom.api.mappings.layered.spec.MappingsSpec;
 
@@ -20,13 +24,25 @@ public class LoomLayeredYarnPlugin implements Plugin<Project> {
             this.project = project;
         }
 
-        public MappingsSpec<YarnMappingsLayer> yarn(Object object) {
-            return new YarnMappingsSpec(FileSpec.create(object));
+        public MappingsSpec<YarnMappingsLayer> yarn(Object source) {
+            return yarn(source, builder -> {
+            });
         }
 
-        public MappingsSpec<YarnGithubDiffMappingsLayer> githubDiff(String repo, String ref, Object base) {
-            return new YarnGithubDiffMappingsSpec(FileSpec.create(new GithubDependency(repo, ref, this.project)),
-                    FileSpec.create(base));
+        @SuppressWarnings({ "rawtypes", "deprecation" })
+        public MappingsSpec<YarnMappingsLayer> yarn(Object source,
+                @DelegatesTo(value = YarnMappingsSpecBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
+            return yarn(source, builder -> org.gradle.util.ConfigureUtil.configure(closure, builder));
+        }
+
+        public MappingsSpec<YarnMappingsLayer> yarn(Object source, Action<YarnMappingsSpecBuilder> action) {
+            YarnMappingsSpecBuilder builder = YarnMappingsSpecBuilder.builder(FileSpec.create(source));
+            action.execute(builder);
+            return builder.build();
+        }
+
+        public Dependency github(String repo, String ref) {
+            return new GithubDependency(repo, ref, this.project);
         }
     }
 
