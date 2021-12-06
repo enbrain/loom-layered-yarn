@@ -63,3 +63,11 @@ mappings loom.layered() {
     })
 }
 ```
+
+### Use local Yarn repository
+
+```groovy
+mappings loom.layered() {
+    addLayer(loomLayeredYarn.yarn(file("../yarn")))
+}
+```
