@@ -1,5 +1,7 @@
 package io.github.enbrain.loomlayeredyarn;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.gradle.api.Action;
@@ -36,13 +38,23 @@ public class LoomLayeredYarnPlugin implements Plugin<Project> {
         }
 
         public MappingsSpec<YarnMappingsLayer> yarn(Object source, Action<YarnMappingsSpecBuilder> action) {
-            YarnMappingsSpecBuilder builder = YarnMappingsSpecBuilder.builder(FileSpec.create(source));
+            YarnMappingsSpecBuilder builder = YarnMappingsSpecBuilder.builder(createFileSpec(source));
             action.execute(builder);
             return builder.build();
         }
 
         public Dependency github(String repo, String ref) {
             return new GithubDependency(repo, ref, this.project);
+        }
+
+        private static FileSpec createFileSpec(Object object) {
+            if (object instanceof Path path && Files.isDirectory(path)) {
+                return new LocalDirectorySpec(path);
+            } else if (object instanceof File file && file.isDirectory()) {
+                return new LocalDirectorySpec(file.toPath());
+            } else {
+                return FileSpec.create(object);
+            }
         }
     }
 
