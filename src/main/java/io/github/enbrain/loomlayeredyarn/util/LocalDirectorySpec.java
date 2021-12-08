@@ -1,4 +1,4 @@
-package io.github.enbrain.loomlayeredyarn;
+package io.github.enbrain.loomlayeredyarn.util;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;

@@ -1,4 +1,4 @@
-package io.github.enbrain.loomlayeredyarn;
+package io.github.enbrain.loomlayeredyarn.yarn;
 
 import org.jetbrains.annotations.Nullable;
 

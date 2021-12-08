@@ -1,4 +1,4 @@
-package io.github.enbrain.loomlayeredyarn;
+package io.github.enbrain.loomlayeredyarn.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +15,7 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskDependency;
 
+import io.github.enbrain.loomlayeredyarn.LoomLayeredYarnPlugin;
 import net.fabricmc.loom.util.DownloadUtil;
 
 public class GithubDependency implements FileCollectionDependency {
