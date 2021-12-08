@@ -99,8 +99,9 @@ public record AppendToJavadocMappingsLayer(Path basePath, Path additionalPath, S
             for (MethodArgMappingView additionalArg : additionalMethod.getArgs()) {
                 MethodArgMappingView baseArg = baseMethod.getArg(additionalArg.getArgPosition(),
                         additionalArg.getLvIndex(), null);
-                contributes |= baseArg == null
-                        || !additionalArg.getName(additonalNamespace).equals(baseArg.getName(baseNamespace));
+
+                contributes |= additionalArg.getName(additonalNamespace) != null && (baseArg == null
+                        || !additionalArg.getName(additonalNamespace).equals(baseArg.getName(baseNamespace)));
             }
         }
 
