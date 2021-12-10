@@ -34,7 +34,7 @@ A gradle plugin that allows Yarn to be used as a mapping layer in Loom.
 ```diff
   plugins {
       id 'fabric-loom' version '0.10-SNAPSHOT'
-+     id 'io.github.enbrain.loom-layered-yarn' version '0.5.1'
++     id 'io.github.enbrain.loom-layered-yarn' version '0.5.2'
       id 'maven-publish'
   }
 ```
