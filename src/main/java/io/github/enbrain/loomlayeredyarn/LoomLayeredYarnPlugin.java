@@ -63,7 +63,7 @@ public class LoomLayeredYarnPlugin implements Plugin<Project> {
         }
 
         public Dependency github(String repo, String ref) {
-            return new GithubDependency(repo, ref, this.project);
+            return GithubDependency.of(repo, ref, this.project);
         }
 
         private static FileSpec createFileSpec(Object object) {
