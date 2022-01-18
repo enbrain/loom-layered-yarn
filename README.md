@@ -108,16 +108,16 @@ Note: Showing Javadoc changes is not supported.
 
 ```groovy
 dependencies {
-	mappings layeredYarn.enableUnpick(loom.layered() {
-		addLayer(layeredYarn.yarn("net.fabricmc:yarn:1.18.1+build.22:v2"));
-		addLayer(layeredYarn.unpick("net.fabricmc:yarn:1.18.1+build.22:v2"))
-	})
+    mappings layeredYarn.enableUnpick(loom.layered() {
+        addLayer(layeredYarn.yarn("net.fabricmc:yarn:1.18.1+build.22:v2"));
+        addLayer(layeredYarn.unpick("net.fabricmc:yarn:1.18.1+build.22:v2"))
+    })
 }
 
 configurations.mappingsConstants {
-	withDependencies { dependencies ->
-		dependencies.removeIf { it.group == "loom" && it.name == "mappings" }
-		dependencies.add(project.dependencies.create("net.fabricmc:yarn:1.18.1+build.22:constants"))
-	}
+    withDependencies { dependencies ->
+        dependencies.removeIf { it.group == "loom" && it.name == "mappings" }
+        dependencies.add(project.dependencies.create("net.fabricmc:yarn:1.18.1+build.22:constants"))
+    }
 }
 ```
