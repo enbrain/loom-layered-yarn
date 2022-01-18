@@ -1,5 +1,7 @@
 package io.github.enbrain.loomlayeredyarn.appendtojavadoc;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
@@ -7,9 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.loom.api.mappings.layered.spec.FileSpec;
 
 public class AppendToJavadocMappingsSpecBuilder {
-    private @Nullable Object base;
-    private @Nullable Object additional;
-    private String prefix = "@additionalMapping";
+    private @Nullable FileSpec base;
+    private List<AdditionalMappingSpec> additionalEntries = new ArrayList<>();
 
     private AppendToJavadocMappingsSpecBuilder() {
     }
@@ -18,25 +19,26 @@ public class AppendToJavadocMappingsSpecBuilder {
         return new AppendToJavadocMappingsSpecBuilder();
     }
 
-    public AppendToJavadocMappingsSpecBuilder setSource1(Object base) {
-        this.base = base;
+    public AppendToJavadocMappingsSpecBuilder setBase(Object base) {
+        this.base = FileSpec.create(base);
         return this;
     }
 
-    public AppendToJavadocMappingsSpecBuilder setAdditional(Object additional) {
-        this.additional = additional;
-        return this;
+    public AppendToJavadocMappingsSpecBuilder add(Object mapping) {
+        return this.add("additionalMapping", mapping);
     }
 
-    public AppendToJavadocMappingsSpecBuilder setPrefix(String prefix) {
-        this.prefix = prefix;
+    public AppendToJavadocMappingsSpecBuilder add(String name, Object mapping) {
+        this.additionalEntries.add(new AdditionalMappingSpec(name, FileSpec.create(mapping)));
         return this;
     }
 
     public AppendToJavadocMappingsSpec build() {
-        Objects.requireNonNull(base, "base is not set");
-        Objects.requireNonNull(additional, "additional is not set");
+        Objects.requireNonNull(this.base, "base is not set");
 
-        return new AppendToJavadocMappingsSpec(FileSpec.create(this.base), FileSpec.create(this.additional), prefix);
+        return new AppendToJavadocMappingsSpec(this.base, additionalEntries);
+    }
+
+    public static record AdditionalMappingSpec(String prefix, FileSpec fileSpec) {
     }
 }

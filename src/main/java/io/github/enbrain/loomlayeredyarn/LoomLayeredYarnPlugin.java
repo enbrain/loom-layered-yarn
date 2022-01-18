@@ -9,8 +9,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import io.github.enbrain.loomlayeredyarn.appendtojavadoc.AppendToJavadocMappingsLayer;
 import io.github.enbrain.loomlayeredyarn.appendtojavadoc.AppendToJavadocMappingsSpecBuilder;
 import io.github.enbrain.loomlayeredyarn.unpick.UnpickEnabledDependency;
@@ -41,22 +39,10 @@ public class LoomLayeredYarnPlugin implements Plugin<Project> {
             });
         }
 
-        @SuppressWarnings({ "rawtypes", "deprecation" })
-        public MappingsSpec<YarnMappingsLayer> yarn(Object source,
-                @DelegatesTo(value = YarnMappingsSpecBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
-            return yarn(source, builder -> org.gradle.util.ConfigureUtil.configure(closure, builder));
-        }
-
         public MappingsSpec<YarnMappingsLayer> yarn(Object source, Action<YarnMappingsSpecBuilder> action) {
             YarnMappingsSpecBuilder builder = YarnMappingsSpecBuilder.builder(createFileSpec(source));
             action.execute(builder);
             return builder.build();
-        }
-
-        @SuppressWarnings({ "rawtypes", "deprecation" })
-        public MappingsSpec<AppendToJavadocMappingsLayer> appendToJavadoc(
-                @DelegatesTo(value = YarnMappingsSpecBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
-            return appendToJavadoc(builder -> org.gradle.util.ConfigureUtil.configure(closure, builder));
         }
 
         public MappingsSpec<AppendToJavadocMappingsLayer> appendToJavadoc(
