@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.file.FileCollection;
@@ -38,9 +39,11 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
     }
 
     private LayeredMappingsDependency layeredMappingsDependency;
+    private Project project;
 
-    public UnpickEnabledDependency(LayeredMappingsDependency layeredMappingsDependency) {
+    public UnpickEnabledDependency(LayeredMappingsDependency layeredMappingsDependency, Project project) {
         this.layeredMappingsDependency = layeredMappingsDependency;
+        this.project = project;
     }
 
     @Override
@@ -62,28 +65,34 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
 
         Set<File> files = layeredMappingsDependency.resolve();
 
-        if (writesUnpick) {
-            LayeredMappingsProcessor processor = new LayeredMappingsProcessor(layeredMappingSpec);
-            List<MappingLayer> layers = processor.resolveLayers(mappingContext);
+        LayeredMappingsProcessor processor = new LayeredMappingsProcessor(layeredMappingSpec);
+        List<MappingLayer> layers = processor.resolveLayers(mappingContext);
 
-            byte[] unpickDefinition = null;
-            byte[] unpickMetadata = null;
+        UnpickLayer lastUnpickLayer = null;
 
-            for (MappingLayer layer : layers) {
-                if (layer instanceof UnpickLayer unpickLayer) {
-                    unpickDefinition = unpickLayer.getUnpickDefinition();
-                    unpickMetadata = unpickLayer.getUnpickMetadata();
-                }
+        for (MappingLayer layer : layers) {
+            if (layer instanceof UnpickLayer unpickLayer) {
+                lastUnpickLayer = unpickLayer;
             }
+        }
 
-            if (unpickDefinition != null && unpickMetadata != null) {
+        if (lastUnpickLayer != null) {
+            if (writesUnpick) {
                 try {
-                    ZipUtils.add(mappingsFile, UnpickLayer.UNPICK_DEFINITION_PATH, unpickDefinition);
-                    ZipUtils.add(mappingsFile, UnpickLayer.UNPICK_METADATA_PATH, unpickMetadata);
+                    ZipUtils.add(mappingsFile, UnpickLayer.UNPICK_DEFINITION_PATH,
+                            lastUnpickLayer.getUnpickDefinition());
+                    ZipUtils.add(mappingsFile, UnpickLayer.UNPICK_METADATA_PATH, lastUnpickLayer.getUnpickMetadata());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
+
+            String constantsDependency = lastUnpickLayer.getConstantsDependency();
+
+            this.project.getConfigurations().getByName("mappingsConstants").withDependencies(dependencies -> {
+                dependencies.removeIf(dep -> dep.getGroup().equals("loom") && dep.getName().equals("mappings"));
+                dependencies.add(this.project.getDependencies().create(constantsDependency));
+            });
         }
 
         return files;
@@ -121,7 +130,7 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
 
     @Override
     public Dependency copy() {
-        return new UnpickEnabledDependency(layeredMappingsDependency);
+        return new UnpickEnabledDependency(layeredMappingsDependency, project);
     }
 
     @Override

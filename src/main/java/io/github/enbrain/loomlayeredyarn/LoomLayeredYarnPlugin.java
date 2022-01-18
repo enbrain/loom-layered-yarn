@@ -70,13 +70,18 @@ public class LoomLayeredYarnPlugin implements Plugin<Project> {
             return GithubDependency.of(repo, ref, this.project);
         }
 
-        public MappingsSpec<UnpickLayer> unpick(Object source) {
-            return new UnpickSpec(FileSpec.create(source));
+        public MappingsSpec<UnpickLayer> unpick(String dependencyNotation) {
+            Dependency dependency = this.project.getDependencies().create(dependencyNotation);
+            String constantsDependency = "%s:%s:%s:constants".formatted(
+                    dependency.getGroup(),
+                    dependency.getName(),
+                    dependency.getVersion());
+            return new UnpickSpec(dependencyNotation, constantsDependency);
         }
 
         public Dependency enableUnpick(Dependency dependency) {
             if (dependency instanceof LayeredMappingsDependency layeredMappingsDependency) {
-                return new UnpickEnabledDependency(layeredMappingsDependency);
+                return new UnpickEnabledDependency(layeredMappingsDependency, this.project);
             } else {
                 throw new IllegalArgumentException("dependency is not LayeredMappingsDependency");
             }

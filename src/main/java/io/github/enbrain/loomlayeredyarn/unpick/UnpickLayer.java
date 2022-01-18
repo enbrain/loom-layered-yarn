@@ -10,7 +10,7 @@ import java.util.zip.ZipFile;
 import net.fabricmc.loom.api.mappings.layered.MappingLayer;
 import net.fabricmc.mappingio.MappingVisitor;
 
-public record UnpickLayer(Path sourcePath) implements MappingLayer {
+public record UnpickLayer(Path sourcePath, String constantsDependency) implements MappingLayer {
     public static final String UNPICK_DEFINITION_PATH = "extras/definitions.unpick";
     public static final String UNPICK_METADATA_PATH = "extras/unpick.json";
 
@@ -24,6 +24,10 @@ public record UnpickLayer(Path sourcePath) implements MappingLayer {
 
     public byte[] getUnpickMetadata() {
         return this.read(UNPICK_METADATA_PATH);
+    }
+
+    public String getConstantsDependency() {
+        return this.constantsDependency;
     }
 
     private byte[] read(String path) {
