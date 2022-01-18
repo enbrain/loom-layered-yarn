@@ -34,7 +34,7 @@ A gradle plugin that allows Yarn to be used as a mapping layer in Loom.
 ```diff
   plugins {
       id 'fabric-loom' version '0.10-SNAPSHOT'
-+     id 'io.github.enbrain.loom-layered-yarn' version '0.6.1'
++     id 'io.github.enbrain.loom-layered-yarn' version '0.7.0'
       id 'maven-publish'
   }
 ```
@@ -80,12 +80,11 @@ mappings loom.layered() {
         base = loom.layered() {
             addLayer(layeredYarn.yarn("net.fabricmc:yarn:1.18.1-rc1+build.1:v2"))
         }
-        additional = loom.layered() {
+        add "keySuffixRefactor", loom.layered() {
             addLayer(layeredYarn.yarn(layeredYarn.github("haykam821/yarn", "gameoptions-key-suffix")) {
                 base = "net.fabricmc:yarn:1.18+build.1:v2"
             })
         }
-        prefix = "@keySuffixRefactor"
     })
 }
 ```
