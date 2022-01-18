@@ -34,7 +34,7 @@ A gradle plugin that allows Yarn to be used as a mapping layer in Loom.
 ```diff
   plugins {
       id 'fabric-loom' version '0.10-SNAPSHOT'
-+     id 'io.github.enbrain.loom-layered-yarn' version '0.6.0'
++     id 'io.github.enbrain.loom-layered-yarn' version '0.6.1'
       id 'maven-publish'
   }
 ```
@@ -107,17 +107,8 @@ Note: Showing Javadoc changes is not supported.
 ### Use unpick
 
 ```groovy
-dependencies {
-    mappings layeredYarn.enableUnpick(loom.layered() {
-        addLayer(layeredYarn.yarn("net.fabricmc:yarn:1.18.1+build.22:v2"));
-        addLayer(layeredYarn.unpick("net.fabricmc:yarn:1.18.1+build.22:v2"))
-    })
-}
-
-configurations.mappingsConstants {
-    withDependencies { dependencies ->
-        dependencies.removeIf { it.group == "loom" && it.name == "mappings" }
-        dependencies.add(project.dependencies.create("net.fabricmc:yarn:1.18.1+build.22:constants"))
-    }
-}
+mappings layeredYarn.enableUnpick(loom.layered() {
+    addLayer(layeredYarn.yarn("net.fabricmc:yarn:1.18.1+build.22:v2"));
+    addLayer(layeredYarn.unpick("net.fabricmc:yarn:1.18.1+build.22:v2"))
+})
 ```
