@@ -13,12 +13,16 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import io.github.enbrain.loomlayeredyarn.appendtojavadoc.AppendToJavadocMappingsLayer;
 import io.github.enbrain.loomlayeredyarn.appendtojavadoc.AppendToJavadocMappingsSpecBuilder;
+import io.github.enbrain.loomlayeredyarn.unpick.UnpickEnabledDependency;
+import io.github.enbrain.loomlayeredyarn.unpick.UnpickLayer;
+import io.github.enbrain.loomlayeredyarn.unpick.UnpickSpec;
 import io.github.enbrain.loomlayeredyarn.util.GithubDependency;
 import io.github.enbrain.loomlayeredyarn.util.LocalDirectorySpec;
 import io.github.enbrain.loomlayeredyarn.yarn.YarnMappingsLayer;
 import io.github.enbrain.loomlayeredyarn.yarn.YarnMappingsSpecBuilder;
 import net.fabricmc.loom.api.mappings.layered.spec.FileSpec;
 import net.fabricmc.loom.api.mappings.layered.spec.MappingsSpec;
+import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingsDependency;
 
 public class LoomLayeredYarnPlugin implements Plugin<Project> {
     public void apply(Project target) {
@@ -64,6 +68,18 @@ public class LoomLayeredYarnPlugin implements Plugin<Project> {
 
         public Dependency github(String repo, String ref) {
             return GithubDependency.of(repo, ref, this.project);
+        }
+
+        public MappingsSpec<UnpickLayer> unpick(Object source) {
+            return new UnpickSpec(FileSpec.create(source));
+        }
+
+        public Dependency enableUnpick(Dependency dependency) {
+            if (dependency instanceof LayeredMappingsDependency layeredMappingsDependency) {
+                return new UnpickEnabledDependency(layeredMappingsDependency);
+            } else {
+                throw new IllegalArgumentException("dependency is not LayeredMappingsDependency");
+            }
         }
 
         private static FileSpec createFileSpec(Object object) {
