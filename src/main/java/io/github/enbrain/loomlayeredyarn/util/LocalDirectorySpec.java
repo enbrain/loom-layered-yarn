@@ -33,10 +33,12 @@ public class LocalDirectorySpec implements FileSpec {
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                FileTime lastModified = Files.getLastModifiedTime(file);
+                if (file.getFileName().toString().endsWith(".mapping")) {
+                    FileTime lastModified = Files.getLastModifiedTime(file);
 
-                if (this.latestFileTime == null || lastModified.compareTo(this.latestFileTime) > 0) {
-                    this.latestFileTime = lastModified;
+                    if (this.latestFileTime == null || lastModified.compareTo(this.latestFileTime) > 0) {
+                        this.latestFileTime = lastModified;
+                    }
                 }
 
                 return FileVisitResult.CONTINUE;
