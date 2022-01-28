@@ -18,6 +18,7 @@ import io.github.enbrain.loomlayeredyarn.util.GithubDependency;
 import io.github.enbrain.loomlayeredyarn.util.LocalDirectorySpec;
 import io.github.enbrain.loomlayeredyarn.yarn.YarnMappingsLayer;
 import io.github.enbrain.loomlayeredyarn.yarn.YarnMappingsSpecBuilder;
+import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.api.mappings.layered.spec.FileSpec;
 import net.fabricmc.loom.api.mappings.layered.spec.MappingsSpec;
 import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingsDependency;
@@ -25,6 +26,11 @@ import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingsDepende
 public class LoomLayeredYarnPlugin implements Plugin<Project> {
     public void apply(Project target) {
         target.getExtensions().create("layeredYarn", LayeredYarnExtension.class, target);
+
+        target.afterEvaluate(project -> {
+            String mappingsIdentifier = LoomGradleExtension.get(project).getMappingsProvider().mappingsIdentifier();
+            target.getLogger().lifecycle("Mappings Identifier: " + mappingsIdentifier);
+        });
     }
 
     public static class LayeredYarnExtension {
