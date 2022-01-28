@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -13,14 +14,14 @@ import io.github.enbrain.loomlayeredyarn.util.MappingValidator;
 import net.fabricmc.loom.api.mappings.layered.MappingLayer;
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
 import net.fabricmc.loom.configuration.providers.mappings.intermediary.IntermediaryMappingLayer;
-import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.MappingUtil;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.MappingNsRenamer;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
-public record YarnMappingsLayer(Path sourcePath, @Nullable Path basePath, Path intermediaryFile)
+public record YarnMappingsLayer(Path sourcePath, @Nullable Path basePath,
+        Supplier<MemoryMappingTree> intermediarySupplier)
         implements MappingLayer {
 
     private static Map<String, String> ENIGMA_NAMESPACE_MAP = Map.of(
@@ -31,10 +32,7 @@ public record YarnMappingsLayer(Path sourcePath, @Nullable Path basePath, Path i
 
     @Override
     public void visit(MappingVisitor dest) throws IOException {
-        MemoryMappingTree intermediary = new MemoryMappingTree();
-        MappingReader.read(intermediaryFile, new MappingSourceNsSwitch(intermediary, getSourceNamespace().toString()));
-
-        MappingVisitor validator = new MappingValidator(dest, intermediary);
+        MappingVisitor validator = new MappingValidator(dest, intermediarySupplier.get());
         MappingVisitor diffVisitor = diff(validator);
         MappingVisitor nsSwitch = new MappingSourceNsSwitch(diffVisitor, getSourceNamespace().toString());
         MappingVisitor nsRenamer = new MappingNsRenamer(nsSwitch, ENIGMA_NAMESPACE_MAP);

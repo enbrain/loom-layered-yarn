@@ -10,6 +10,6 @@ public record YarnMappingsSpec(FileSpec source, @Nullable FileSpec base) impleme
     @Override
     public YarnMappingsLayer createLayer(MappingContext context) {
         return new YarnMappingsLayer(source.get(context), base == null ? null : base.get(context),
-                context.mappingsProvider().intermediaryTinyFile().toPath());
+                context.intermediaryTree());
     }
 }
