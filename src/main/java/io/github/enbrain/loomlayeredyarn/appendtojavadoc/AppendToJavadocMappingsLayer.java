@@ -26,8 +26,7 @@ import net.fabricmc.mappingio.tree.MappingTreeView.MethodArgMappingView;
 import net.fabricmc.mappingio.tree.MappingTreeView.MethodMappingView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
-public record AppendToJavadocMappingsLayer(Path basePath, List<AdditionalMapping> additionalMappings)
-        implements MappingLayer {
+public record AppendToJavadocMappingsLayer(Path basePath, List<AdditionalMapping> additionalMappings) implements MappingLayer {
 
     private static final String DST_NAMESPACE = MappingsNamespace.NAMED.toString();
 
@@ -50,8 +49,7 @@ public record AppendToJavadocMappingsLayer(Path basePath, List<AdditionalMapping
                 }
 
                 for (FieldMapping additionalField : additionalClass.getFields()) {
-                    FieldMapping baseField = baseClass.getField(additionalField.getSrcName(),
-                            additionalField.getSrcDesc());
+                    FieldMapping baseField = baseClass.getField(additionalField.getSrcName(), additionalField.getSrcDesc());
                     if (baseField == null) {
                         baseClass.addField(additionalField);
                     } else {
@@ -60,8 +58,7 @@ public record AppendToJavadocMappingsLayer(Path basePath, List<AdditionalMapping
                 }
 
                 for (MethodMapping additionalMethod : additionalClass.getMethods()) {
-                    MethodMapping baseMethod = baseClass.getMethod(additionalMethod.getSrcName(),
-                            additionalMethod.getSrcDesc());
+                    MethodMapping baseMethod = baseClass.getMethod(additionalMethod.getSrcName(), additionalMethod.getSrcDesc());
                     if (baseMethod == null) {
                         baseClass.addMethod(additionalMethod);
                     } else {
@@ -76,15 +73,13 @@ public record AppendToJavadocMappingsLayer(Path basePath, List<AdditionalMapping
         baseTree.accept(mappingVisitor);
     }
 
-    private void addComment(ElementMapping base, ElementMappingView additional, String additionalMappingsName,
-            Map<ElementMapping, List<String>> additionalComments) {
+    private void addComment(ElementMapping base, ElementMappingView additional, String additionalMappingsName, Map<ElementMapping, List<String>> additionalComments) {
         String comment = Objects.requireNonNullElse(base.getComment(), "");
 
         if (this.contributes(base, additional, DST_NAMESPACE, DST_NAMESPACE)) {
             String additionalName = getFullName(additional, DST_NAMESPACE);
 
-            String additionalComment = additionalMappingsName.isEmpty() ? additionalName
-                    : "@%s %s".formatted(additionalMappingsName, additionalName);
+            String additionalComment = additionalMappingsName.isEmpty() ? additionalName : "@%s %s".formatted(additionalMappingsName, additionalName);
 
             additionalComments.computeIfAbsent(base, k -> new ArrayList<>()).add(additionalComment);
         }
@@ -94,14 +89,11 @@ public record AppendToJavadocMappingsLayer(Path basePath, List<AdditionalMapping
         }
     }
 
-    private boolean contributes(ElementMappingView base, ElementMappingView additional, String baseNamespace,
-            String additonalNamespace) {
-        return isDifferent(additional, additional, this.getSourceNamespace().toString(), additonalNamespace) &&
-                isDifferent(base, additional, baseNamespace, additonalNamespace);
+    private boolean contributes(ElementMappingView base, ElementMappingView additional, String baseNamespace, String additonalNamespace) {
+        return isDifferent(additional, additional, this.getSourceNamespace().toString(), additonalNamespace) && isDifferent(base, additional, baseNamespace, additonalNamespace);
     }
 
-    private static boolean isDifferent(ElementMappingView base, ElementMappingView additional, String baseNamespace,
-            String additonalNamespace) {
+    private static boolean isDifferent(ElementMappingView base, ElementMappingView additional, String baseNamespace, String additonalNamespace) {
         String baseName = base.getName(baseNamespace);
         String additionalName = additional.getName(additonalNamespace);
 
@@ -109,11 +101,9 @@ public record AppendToJavadocMappingsLayer(Path basePath, List<AdditionalMapping
 
         if (base instanceof MethodMappingView baseMethod && additional instanceof MethodMappingView additionalMethod) {
             for (MethodArgMappingView additionalArg : additionalMethod.getArgs()) {
-                MethodArgMappingView baseArg = baseMethod.getArg(additionalArg.getArgPosition(),
-                        additionalArg.getLvIndex(), null);
+                MethodArgMappingView baseArg = baseMethod.getArg(additionalArg.getArgPosition(), additionalArg.getLvIndex(), null);
 
-                different |= additionalArg.getName(additonalNamespace) != null && (baseArg == null
-                        || !additionalArg.getName(additonalNamespace).equals(baseArg.getName(baseNamespace)));
+                different |= additionalArg.getName(additonalNamespace) != null && (baseArg == null || !additionalArg.getName(additonalNamespace).equals(baseArg.getName(baseNamespace)));
             }
         }
 
@@ -124,10 +114,7 @@ public record AppendToJavadocMappingsLayer(Path basePath, List<AdditionalMapping
         String name = mapping.getName(namespace);
 
         if (mapping instanceof MethodMappingView methodMapping) {
-            String args = methodMapping.getArgs().stream()
-                    .sorted(Comparator.comparing(MethodArgMappingView::getLvIndex))
-                    .map(arg -> arg.getLvIndex() + ":" + arg.getName(DST_NAMESPACE))
-                    .collect(Collectors.joining(", "));
+            String args = methodMapping.getArgs().stream().sorted(Comparator.comparing(MethodArgMappingView::getLvIndex)).map(arg -> arg.getLvIndex() + ":" + arg.getName(DST_NAMESPACE)).collect(Collectors.joining(", "));
             if (!args.isEmpty()) {
                 name += "(" + args + ")";
             }

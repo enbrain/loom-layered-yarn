@@ -7,6 +7,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.loom.api.mappings.layered.spec.FileSpec;
+import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingsDependency;
 
 public class AppendToJavadocMappingsSpecBuilder {
     private @Nullable FileSpec base;
@@ -19,16 +20,12 @@ public class AppendToJavadocMappingsSpecBuilder {
         return new AppendToJavadocMappingsSpecBuilder();
     }
 
-    public AppendToJavadocMappingsSpecBuilder setBase(Object base) {
+    public AppendToJavadocMappingsSpecBuilder setBase(LayeredMappingsDependency base) {
         this.base = FileSpec.create(base);
         return this;
     }
 
-    public AppendToJavadocMappingsSpecBuilder add(Object mapping) {
-        return this.add("additionalMapping", mapping);
-    }
-
-    public AppendToJavadocMappingsSpecBuilder add(String name, Object mapping) {
+    public AppendToJavadocMappingsSpecBuilder add(String name, LayeredMappingsDependency mapping) {
         this.additionalEntries.add(new AdditionalMappingSpec(name, FileSpec.create(mapping)));
         return this;
     }

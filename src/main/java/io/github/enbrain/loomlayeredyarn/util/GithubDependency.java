@@ -38,12 +38,31 @@ public class GithubDependency implements FileCollectionDependency {
 
         this.project = project;
 
-        this.destination = LoomLayeredYarnPlugin.getCachePath(project).resolve("yarn-github")
-                .resolve(repo.replace('/', '-') + "-" + sha + ".zip");
+        this.destination = LoomLayeredYarnPlugin.getCachePath(project).resolve("yarn-github").resolve(repo.replace('/', '-') + "-" + sha + ".zip");
     }
 
     public static GithubDependency of(String repo, String ref, Project project) {
         return new GithubDependency(repo, resolveSha(repo, ref), project);
+    }
+
+    public static GithubDependency fromPrBaseRef(String repo, JsonObject info, Project project) {
+        String ref = info.getAsJsonObject("base").get("ref").getAsString();
+        return of(repo, ref, project);
+    }
+
+    public static GithubDependency fromPrMergeCommit(String repo, JsonObject info, Project project) {
+        String sha = info.get("merge_commit_sha").getAsString();
+        return new GithubDependency(repo, sha, project);
+    }
+
+    public static JsonObject getPrInfo(String repo, int number) {
+        String url = "https://api.github.com/repos/" + repo + "/pulls/" + number;
+
+        try (InputStreamReader reader = new InputStreamReader(new URL(url).openStream())) {
+            return JsonParser.parseReader(reader).getAsJsonObject();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to download " + url, e);
+        }
     }
 
     private static String resolveSha(String repo, String ref) {
@@ -101,9 +120,7 @@ public class GithubDependency implements FileCollectionDependency {
             return false;
         } else {
             GithubDependency githubDependency = (GithubDependency) dependency;
-            return Objects.equals(githubDependency.owner, this.owner)
-                    && Objects.equals(githubDependency.name, this.name)
-                    && Objects.equals(githubDependency.sha, this.sha);
+            return Objects.equals(githubDependency.owner, this.owner) && Objects.equals(githubDependency.name, this.name) && Objects.equals(githubDependency.sha, this.sha);
         }
     }
 

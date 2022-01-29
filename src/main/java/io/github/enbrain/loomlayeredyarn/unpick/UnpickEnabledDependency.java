@@ -3,8 +3,11 @@ package io.github.enbrain.loomlayeredyarn.unpick;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -26,6 +29,9 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
     private static final Field MAPPING_CONTEXT_FIELD;
     private static final Field LAYERED_MAPPING_SPEC_FIELD;
 
+    private static final Method WRITE_MAPPING_METHOD;
+    private static final Method WRITE_SIGNATURE_FIXES_METHOD;
+
     static {
         try {
             MAPPING_CONTEXT_FIELD = LayeredMappingsDependency.class.getDeclaredField("mappingContext");
@@ -34,6 +40,16 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
             LAYERED_MAPPING_SPEC_FIELD = LayeredMappingsDependency.class.getDeclaredField("layeredMappingSpec");
             LAYERED_MAPPING_SPEC_FIELD.setAccessible(true);
         } catch (NoSuchFieldException | SecurityException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            WRITE_MAPPING_METHOD = LayeredMappingsDependency.class.getDeclaredMethod("writeMapping", LayeredMappingsProcessor.class, List.class, Path.class);
+            WRITE_MAPPING_METHOD.setAccessible(true);
+
+            WRITE_SIGNATURE_FIXES_METHOD = LayeredMappingsDependency.class.getDeclaredMethod("writeSignatureFixes", LayeredMappingsProcessor.class, List.class, Path.class);
+            WRITE_SIGNATURE_FIXES_METHOD.setAccessible(true);
+        } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
@@ -61,41 +77,50 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
         Path mappingsDir = mappingContext.minecraftProvider().dir("layered").toPath();
         Path mappingsFile = mappingsDir.resolve("loom.mappings-%s.tiny".formatted(this.getVersion()));
 
-        boolean writesUnpick = !Files.exists(mappingsFile) || LoomGradlePlugin.refreshDeps;
+        if (!Files.exists(mappingsFile) || LoomGradlePlugin.refreshDeps) {
+            try {
+                LayeredMappingsProcessor processor = new LayeredMappingsProcessor(layeredMappingSpec);
+                List<MappingLayer> layers = processor.resolveLayers(mappingContext);
 
-        Set<File> files = layeredMappingsDependency.resolve();
+                UnpickLayer lastUnpickLayer = null;
 
-        LayeredMappingsProcessor processor = new LayeredMappingsProcessor(layeredMappingSpec);
-        List<MappingLayer> layers = processor.resolveLayers(mappingContext);
+                for (MappingLayer layer : layers) {
+                    if (layer instanceof UnpickLayer unpickLayer) {
+                        unpickLayer.enable();
+                        lastUnpickLayer = unpickLayer;
+                    }
+                }
 
-        UnpickLayer lastUnpickLayer = null;
+                Files.deleteIfExists(mappingsFile);
 
-        for (MappingLayer layer : layers) {
-            if (layer instanceof UnpickLayer unpickLayer) {
-                lastUnpickLayer = unpickLayer;
-            }
-        }
-
-        if (lastUnpickLayer != null) {
-            if (writesUnpick) {
                 try {
-                    ZipUtils.add(mappingsFile, UnpickLayer.UNPICK_DEFINITION_PATH,
-                            lastUnpickLayer.getUnpickDefinition());
-                    ZipUtils.add(mappingsFile, UnpickLayer.UNPICK_METADATA_PATH, lastUnpickLayer.getUnpickMetadata());
-                } catch (IOException e) {
+                    WRITE_MAPPING_METHOD.invoke(layeredMappingsDependency, processor, layers, mappingsFile);
+                    WRITE_SIGNATURE_FIXES_METHOD.invoke(layeredMappingsDependency, processor, layers, mappingsFile);
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                     throw new RuntimeException(e);
                 }
+
+                if (lastUnpickLayer != null) {
+                    try {
+                        ZipUtils.add(mappingsFile, UnpickLayer.UNPICK_DEFINITION_PATH, lastUnpickLayer.getUnpickDefinition());
+                        ZipUtils.add(mappingsFile, UnpickLayer.UNPICK_METADATA_PATH, lastUnpickLayer.getUnpickMetadata());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    String constantsDependency = lastUnpickLayer.getConstantsDependency();
+
+                    this.project.getConfigurations().getByName("mappingsConstants").withDependencies(dependencies -> {
+                        dependencies.removeIf(dep -> dep.getGroup().equals("loom") && dep.getName().equals("mappings"));
+                        dependencies.add(this.project.getDependencies().create(constantsDependency));
+                    });
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to resolve layered mappings", e);
             }
-
-            String constantsDependency = lastUnpickLayer.getConstantsDependency();
-
-            this.project.getConfigurations().getByName("mappingsConstants").withDependencies(dependencies -> {
-                dependencies.removeIf(dep -> dep.getGroup().equals("loom") && dep.getName().equals("mappings"));
-                dependencies.add(this.project.getDependencies().create(constantsDependency));
-            });
         }
 
-        return files;
+        return Collections.singleton(mappingsFile.toFile());
     }
 
     @Override

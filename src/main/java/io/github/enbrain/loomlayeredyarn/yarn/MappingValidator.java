@@ -1,4 +1,4 @@
-package io.github.enbrain.loomlayeredyarn.util;
+package io.github.enbrain.loomlayeredyarn.yarn;
 
 import java.io.IOException;
 

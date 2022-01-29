@@ -10,12 +10,28 @@ import java.util.zip.ZipFile;
 import net.fabricmc.loom.api.mappings.layered.MappingLayer;
 import net.fabricmc.mappingio.MappingVisitor;
 
-public record UnpickLayer(Path sourcePath, String constantsDependency) implements MappingLayer {
+public class UnpickLayer implements MappingLayer {
     public static final String UNPICK_DEFINITION_PATH = "extras/definitions.unpick";
     public static final String UNPICK_METADATA_PATH = "extras/unpick.json";
 
+    private final Path sourcePath;
+    private final String constantsDependency;
+    private boolean enabled = false;
+
+    public UnpickLayer(Path sourcePath, String constantsDependency) {
+        this.sourcePath = sourcePath;
+        this.constantsDependency = constantsDependency;
+    }
+
     @Override
     public void visit(MappingVisitor mappingVisitor) throws IOException {
+        if (!this.enabled) {
+            throw new IllegalStateException("Unpick layer is not enabled");
+        }
+    }
+
+    public void enable() {
+        this.enabled = true;
     }
 
     public byte[] getUnpickDefinition() {
