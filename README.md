@@ -34,58 +34,61 @@ A gradle plugin that allows Yarn to be used as a mapping layer in Loom.
 ```diff
   plugins {
       id 'fabric-loom' version '0.11-SNAPSHOT'
-+     id 'io.github.enbrain.loom-layered-yarn' version '0.8.1'
++     id 'io.github.enbrain.loom-layered-yarn' version '0.9.1'
       id 'maven-publish'
   }
 ```
 
 ## Examples
 
-### Use `1.18.1-rc1+build.1` whenever possible, fallback to `1.17.1+build.65`
+### Use `1.18.1+build.22` whenever possible, fallback to `22w03a+build.12`
 
 ```groovy
 mappings loom.layered() {
-    addLayer(layeredYarn.yarn("net.fabricmc:yarn:1.17.1+build.65:v2"))
-    addLayer(layeredYarn.yarn("net.fabricmc:yarn:1.18.1-rc1+build.1:v2"))
+    addLayer layeredYarn.yarn("net.fabricmc:yarn:22w03a+build.12:v2")
+    addLayer layeredYarn.yarn("net.fabricmc:yarn:1.18.1+build.22:v2")
 }
 ```
 
-### Use [Yarn PR #2903](https://github.com/FabricMC/yarn/pull/2903) and [Yarn PR #2895](https://github.com/FabricMC/yarn/pull/2895) on top of `1.18.1-rc1+build.1`
+### Use unpick
 
 ```groovy
-mappings loom.layered() {
-    addLayer(layeredYarn.yarn("net.fabricmc:yarn:1.18.1-rc1+build.1:v2"))
-    addLayer(layeredYarn.yarn(layeredYarn.github("apple502j/yarn", "1.18.1-pre1-collision")) {
-        base = "net.fabricmc:yarn:1.18.1-pre1+build.4:v2"
-    })
-    addLayer(layeredYarn.yarn(layeredYarn.github("haykam821/yarn", "gameoptions-key-suffix")) {
-        base = "net.fabricmc:yarn:1.18+build.1:v2"
-    })
-}
+mappings layeredYarn.enableUnpick(loom.layered() {
+    addLayer layeredYarn.yarn("net.fabricmc:yarn:22w03a+build.12:v2")
+    addLayer layeredYarn.unpick("net.fabricmc:yarn:22w03a+build.12:v2")
+})
 ```
 
 ### Use local Yarn repository
 
 ```groovy
 mappings loom.layered() {
-    addLayer(layeredYarn.yarn(file("../yarn")))
+    addLayer layeredYarn.yarn(file("../yarn"))
 }
 ```
 
-### Show changes of [Yarn PR #2895](https://github.com/FabricMC/yarn/pull/2895) in Javadoc
+### Use [Yarn PR #2921](https://github.com/FabricMC/yarn/pull/2921) and [Yarn PR #2978](https://github.com/FabricMC/yarn/pull/2978) on top of `22w03a+build.12`
 
 ```groovy
 mappings loom.layered() {
-    addLayer(layeredYarn.appendToJavadoc() {
+    addLayer layeredYarn.yarn("net.fabricmc:yarn:22w03a+build.12:v2")
+    addLayer layeredYarn.pr("FabricMC/yarn", 2921)
+    addLayer layeredYarn.pr("FabricMC/yarn", 2978)
+}
+```
+
+### Show changes of [Yarn PR #2921](https://github.com/FabricMC/yarn/pull/2921) in Javadoc
+
+```groovy
+mappings loom.layered() {
+    addLayer layeredYarn.appendToJavadoc() {
         base = loom.layered() {
-            addLayer(layeredYarn.yarn("net.fabricmc:yarn:1.18.1-rc1+build.1:v2"))
+             addLayer layeredYarn.yarn("net.fabricmc:yarn:22w03a+build.12:v2")
         }
-        add "keySuffixRefactor", loom.layered() {
-            addLayer(layeredYarn.yarn(layeredYarn.github("haykam821/yarn", "gameoptions-key-suffix")) {
-                base = "net.fabricmc:yarn:1.18+build.1:v2"
-            })
+        add "builderRefactor", loom.layered() {
+            addLayer layeredYarn.pr("FabricMC/yarn", 2921)
         }
-    })
+    }
 }
 ```
 
@@ -93,21 +96,9 @@ Result:
 
 ```java
 /**
- * A key binding for moving forward.
- * Bound to {@linkplain org.lwjgl.glfw.GLFW#GLFW_KEY_W the W key} by default.
- * 
- * @keySuffixRefactor forwardKey
+ * @builderRefactor advancementBuilder
  */
-public final KeyBinding keyForward;
+private final Advancement.Task builder = Advancement.Task.create();
 ```
 
 Note: Showing Javadoc changes is not supported.
-
-### Use unpick
-
-```groovy
-mappings layeredYarn.enableUnpick(loom.layered() {
-    addLayer(layeredYarn.yarn("net.fabricmc:yarn:1.18.1+build.22:v2"));
-    addLayer(layeredYarn.unpick("net.fabricmc:yarn:1.18.1+build.22:v2"))
-})
-```
