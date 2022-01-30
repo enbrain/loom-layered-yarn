@@ -77,20 +77,20 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
         Path mappingsDir = mappingContext.minecraftProvider().dir("layered").toPath();
         Path mappingsFile = mappingsDir.resolve("loom.mappings-%s.tiny".formatted(this.getVersion()));
 
+        LayeredMappingsProcessor processor = new LayeredMappingsProcessor(layeredMappingSpec);
+        List<MappingLayer> layers = processor.resolveLayers(mappingContext);
+
+        UnpickLayer lastUnpickLayer = null;
+
+        for (MappingLayer layer : layers) {
+            if (layer instanceof UnpickLayer unpickLayer) {
+                unpickLayer.enable();
+                lastUnpickLayer = unpickLayer;
+            }
+        }
+
         if (!Files.exists(mappingsFile) || LoomGradlePlugin.refreshDeps) {
             try {
-                LayeredMappingsProcessor processor = new LayeredMappingsProcessor(layeredMappingSpec);
-                List<MappingLayer> layers = processor.resolveLayers(mappingContext);
-
-                UnpickLayer lastUnpickLayer = null;
-
-                for (MappingLayer layer : layers) {
-                    if (layer instanceof UnpickLayer unpickLayer) {
-                        unpickLayer.enable();
-                        lastUnpickLayer = unpickLayer;
-                    }
-                }
-
                 Files.deleteIfExists(mappingsFile);
 
                 try {
@@ -107,17 +107,19 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
-
-                    String constantsDependency = lastUnpickLayer.getConstantsDependency();
-
-                    this.project.getConfigurations().getByName("mappingsConstants").withDependencies(dependencies -> {
-                        dependencies.removeIf(dep -> dep.getGroup().equals("loom") && dep.getName().equals("mappings"));
-                        dependencies.add(this.project.getDependencies().create(constantsDependency));
-                    });
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Failed to resolve layered mappings", e);
             }
+        }
+
+        if (lastUnpickLayer != null) {
+            String constantsDependency = lastUnpickLayer.getConstantsDependency();
+
+            this.project.getConfigurations().getByName("mappingsConstants").withDependencies(dependencies -> {
+                dependencies.removeIf(dep -> dep.getGroup().equals("loom") && dep.getName().equals("mappings"));
+                dependencies.add(this.project.getDependencies().create(constantsDependency));
+            });
         }
 
         return Collections.singleton(mappingsFile.toFile());
