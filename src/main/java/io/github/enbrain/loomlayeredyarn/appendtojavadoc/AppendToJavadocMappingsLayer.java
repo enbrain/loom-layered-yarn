@@ -42,26 +42,20 @@ public record AppendToJavadocMappingsLayer(Path basePath, List<AdditionalMapping
             for (ClassMapping additionalClass : additionalTree.getClasses()) {
                 ClassMapping baseClass = baseTree.getClass(additionalClass.getSrcName());
 
-                if (baseClass == null) {
-                    baseTree.addClass(additionalClass);
-                } else {
+                if (baseClass != null) {
                     this.addComment(baseClass, additionalClass, additional.name(), additionalComments);
                 }
 
                 for (FieldMapping additionalField : additionalClass.getFields()) {
                     FieldMapping baseField = baseClass.getField(additionalField.getSrcName(), additionalField.getSrcDesc());
-                    if (baseField == null) {
-                        baseClass.addField(additionalField);
-                    } else {
+                    if (baseField != null) {
                         this.addComment(baseField, additionalField, additional.name(), additionalComments);
                     }
                 }
 
                 for (MethodMapping additionalMethod : additionalClass.getMethods()) {
                     MethodMapping baseMethod = baseClass.getMethod(additionalMethod.getSrcName(), additionalMethod.getSrcDesc());
-                    if (baseMethod == null) {
-                        baseClass.addMethod(additionalMethod);
-                    } else {
+                    if (baseMethod != null) {
                         this.addComment(baseMethod, additionalMethod, additional.name(), additionalComments);
                     }
                 }
