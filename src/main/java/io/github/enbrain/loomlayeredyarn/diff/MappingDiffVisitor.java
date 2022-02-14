@@ -1,6 +1,7 @@
 package io.github.enbrain.loomlayeredyarn.diff;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
@@ -68,7 +69,7 @@ public class MappingDiffVisitor extends ForwardingMappingVisitor {
             default -> throw new UnsupportedOperationException("Unsupported targetKind: " + targetKind);
         };
 
-        if (element == null || !element.getComment().equals(comment)) {
+        if (element == null || !Objects.equals(element.getComment(), comment)) {
             super.visitComment(targetKind, comment);
         }
     }
