@@ -47,6 +47,10 @@ public class LayeredYarnExtension {
         return GithubDependency.of(repo, ref, this.project);
     }
 
+    public MappingsSpec<DiffMappingsLayer> pr(int number) {
+        return pr("FabricMC/yarn", number);
+    }
+
     public MappingsSpec<DiffMappingsLayer> pr(String repo, int number) {
         LoomGradleExtensionAPI loom = this.project.getExtensions().getByType(LoomGradleExtensionAPI.class);
         return diff(diffBuilder -> {
