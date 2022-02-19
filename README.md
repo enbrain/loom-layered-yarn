@@ -34,7 +34,7 @@ A gradle plugin that allows Yarn to be used as a mapping layer in Loom.
 ```diff
   plugins {
       id 'fabric-loom' version '0.11-SNAPSHOT'
-+     id 'io.github.enbrain.loom-layered-yarn' version '0.9.4'
++     id 'io.github.enbrain.loom-layered-yarn' version '0.10.0'
       id 'maven-publish'
   }
 ```
@@ -72,8 +72,8 @@ mappings loom.layered() {
 ```groovy
 mappings loom.layered() {
     addLayer layeredYarn.yarn("net.fabricmc:yarn:22w03a+build.12:v2")
-    addLayer layeredYarn.pr("FabricMC/yarn", 2921)
-    addLayer layeredYarn.pr("FabricMC/yarn", 2978)
+    addLayer layeredYarn.pr(2921)
+    addLayer layeredYarn.pr(2978)
 }
 ```
 
@@ -86,7 +86,7 @@ mappings loom.layered() {
              addLayer layeredYarn.yarn("net.fabricmc:yarn:22w03a+build.12:v2")
         }
         add "builderRefactor", loom.layered() {
-            addLayer layeredYarn.pr("FabricMC/yarn", 2921)
+            addLayer layeredYarn.pr(2921)
         }
     }
 }
