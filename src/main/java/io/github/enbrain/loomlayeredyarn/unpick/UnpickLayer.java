@@ -1,61 +1,28 @@
 package io.github.enbrain.loomlayeredyarn.unpick;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Objects;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.loom.api.mappings.layered.MappingLayer;
+import net.fabricmc.loom.configuration.providers.mappings.file.FileMappingsLayer;
+import net.fabricmc.loom.util.ZipUtils;
 import net.fabricmc.mappingio.MappingVisitor;
 
-public class UnpickLayer implements MappingLayer {
-    public static final String UNPICK_DEFINITION_PATH = "extras/definitions.unpick";
-    public static final String UNPICK_METADATA_PATH = "extras/unpick.json";
-
-    private final Path sourcePath;
-    private final String constantsDependency;
-    private boolean enabled = false;
-
-    public UnpickLayer(Path sourcePath, String constantsDependency) {
-        this.sourcePath = sourcePath;
-        this.constantsDependency = constantsDependency;
+public record UnpickLayer(Path sourcePath, String constantsDependency) implements MappingLayer, net.fabricmc.loom.configuration.providers.mappings.extras.unpick.UnpickLayer {
+    @Override
+    public void visit(MappingVisitor mappingVisitor) throws IOException {
+        // Nothing to do here
     }
 
     @Override
-    public void visit(MappingVisitor mappingVisitor) throws IOException {
-        if (!this.enabled) {
-            throw new IllegalStateException("Unpick layer is not enabled");
+    public @Nullable UnpickData getUnpickData() throws IOException {
+        if (!ZipUtils.isZip(this.sourcePath)) {
+            throw new UnsupportedOperationException("Unpick source must be a zip file");
         }
-    }
 
-    public void enable() {
-        this.enabled = true;
-    }
-
-    public byte[] getUnpickDefinition() {
-        return this.read(UNPICK_DEFINITION_PATH);
-    }
-
-    public byte[] getUnpickMetadata() {
-        return this.read(UNPICK_METADATA_PATH);
-    }
-
-    public String getConstantsDependency() {
-        return this.constantsDependency;
-    }
-
-    private byte[] read(String path) {
-        try (ZipFile zipFile = new ZipFile(sourcePath.toFile())) {
-            ZipEntry zipFileEntry = zipFile.getEntry(path);
-            Objects.requireNonNull(zipFileEntry, "Could not find %s in file".formatted(path));
-
-            try (InputStream stream = zipFile.getInputStream(zipFileEntry)) {
-                return stream.readAllBytes();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to extract unpick", e);
-        }
+        FileMappingsLayer delegate = new FileMappingsLayer(sourcePath, null, null, null, false, true, null);
+        return delegate.getUnpickData();
     }
 }

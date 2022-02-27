@@ -1,13 +1,9 @@
 package io.github.enbrain.loomlayeredyarn.unpick;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -17,13 +13,11 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskDependency;
 
-import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.api.mappings.layered.MappingContext;
 import net.fabricmc.loom.api.mappings.layered.MappingLayer;
 import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingSpec;
 import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingsDependency;
 import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingsProcessor;
-import net.fabricmc.loom.util.ZipUtils;
 
 public class UnpickEnabledDependency implements FileCollectionDependency {
     private static final Field MAPPING_CONTEXT_FIELD;
@@ -64,6 +58,8 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
 
     @Override
     public Set<File> resolve() {
+        Set<File> files = layeredMappingsDependency.resolve();
+
         MappingContext mappingContext;
         LayeredMappingSpec layeredMappingSpec;
 
@@ -74,9 +70,6 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
             throw new RuntimeException(e);
         }
 
-        Path mappingsDir = mappingContext.minecraftProvider().dir("layered").toPath();
-        Path mappingsFile = mappingsDir.resolve("loom.mappings-%s.tiny".formatted(this.getVersion()));
-
         LayeredMappingsProcessor processor = new LayeredMappingsProcessor(layeredMappingSpec);
         List<MappingLayer> layers = processor.resolveLayers(mappingContext);
 
@@ -84,37 +77,12 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
 
         for (MappingLayer layer : layers) {
             if (layer instanceof UnpickLayer unpickLayer) {
-                unpickLayer.enable();
                 lastUnpickLayer = unpickLayer;
             }
         }
 
-        if (!Files.exists(mappingsFile) || LoomGradlePlugin.refreshDeps) {
-            try {
-                Files.deleteIfExists(mappingsFile);
-
-                try {
-                    WRITE_MAPPING_METHOD.invoke(layeredMappingsDependency, processor, layers, mappingsFile);
-                    WRITE_SIGNATURE_FIXES_METHOD.invoke(layeredMappingsDependency, processor, layers, mappingsFile);
-                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-
-                if (lastUnpickLayer != null) {
-                    try {
-                        ZipUtils.add(mappingsFile, UnpickLayer.UNPICK_DEFINITION_PATH, lastUnpickLayer.getUnpickDefinition());
-                        ZipUtils.add(mappingsFile, UnpickLayer.UNPICK_METADATA_PATH, lastUnpickLayer.getUnpickMetadata());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to resolve layered mappings", e);
-            }
-        }
-
         if (lastUnpickLayer != null) {
-            String constantsDependency = lastUnpickLayer.getConstantsDependency();
+            String constantsDependency = lastUnpickLayer.constantsDependency();
 
             this.project.getConfigurations().getByName("mappingsConstants").withDependencies(dependencies -> {
                 dependencies.removeIf(dep -> dep.getGroup().equals("loom") && dep.getName().equals("mappings"));
@@ -122,7 +90,7 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
             });
         }
 
-        return Collections.singleton(mappingsFile.toFile());
+        return files;
     }
 
     @Override

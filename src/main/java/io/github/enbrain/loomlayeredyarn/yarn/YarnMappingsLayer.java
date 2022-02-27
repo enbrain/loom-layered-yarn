@@ -19,8 +19,8 @@ public record YarnMappingsLayer(Path source, Supplier<MemoryMappingTree> interme
     public void visit(MappingVisitor mappingVisitor) throws IOException {
         MappingHelper.findMappingPath(source, p -> {
             try {
-                FileMappingsLayer fileMappingsLayer = new FileMappingsLayer(p, "", MappingsNamespace.INTERMEDIARY.toString(), MappingsNamespace.NAMED.toString(), false, this.getSourceNamespace().toString());
-                fileMappingsLayer.visit(new MappingValidator(mappingVisitor, this.intermediary.get()));
+                FileMappingsLayer delegate = new FileMappingsLayer(p, "", MappingsNamespace.INTERMEDIARY.toString(), MappingsNamespace.NAMED.toString(), false, false, this.getSourceNamespace().toString());
+                delegate.visit(new MappingValidator(mappingVisitor, this.intermediary.get()));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
