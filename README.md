@@ -1,5 +1,5 @@
 # Layered Yarn
-A gradle plugin that allows Yarn to be used as a mapping layer in Loom.
+A Gradle plugin that provides utilities for [Fabric Loom](https://github.com/FabricMC/fabric-loom) layered mappings, notably GitHub dependency and local directory file spec.
 
 ## How to setup for use
 
