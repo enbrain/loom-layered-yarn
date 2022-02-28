@@ -59,6 +59,8 @@ mappings layeredYarn.enableUnpick(loom.layered() {
 })
 ```
 
+This automatically adds the constants jar `yarn-22w03a+build.12-constants.jar` to the dependencies.
+
 ### Use local Yarn repository
 
 ```groovy
