@@ -34,7 +34,7 @@ A Gradle plugin that provides utilities for [Fabric Loom](https://github.com/Fab
 ```diff
   plugins {
       id 'fabric-loom' version '0.11-SNAPSHOT'
-+     id 'io.github.enbrain.loom-layered-yarn' version '0.10.1'
++     id 'io.github.enbrain.loom-layered-yarn' version '0.10.2'
       id 'maven-publish'
   }
 ```
