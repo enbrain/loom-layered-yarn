@@ -4,10 +4,10 @@ import net.fabricmc.loom.api.mappings.layered.MappingContext;
 import net.fabricmc.loom.api.mappings.layered.spec.FileSpec;
 import net.fabricmc.loom.api.mappings.layered.spec.MappingsSpec;
 
-public record UnpickSpec(String dependencyNotation, String constantsDependency) implements MappingsSpec<UnpickLayer> {
+public record UnpickSpec(String dependencyNotation, String constantsDependency) implements MappingsSpec<UnpickLayerImpl> {
     @Override
-    public UnpickLayer createLayer(MappingContext context) {
-        return new UnpickLayer(FileSpec.create(dependencyNotation).get(context), constantsDependency);
+    public UnpickLayerImpl createLayer(MappingContext context) {
+        return new UnpickLayerImpl(FileSpec.create(dependencyNotation).get(context), constantsDependency);
     }
 
     @Override

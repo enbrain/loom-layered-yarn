@@ -15,7 +15,7 @@ import io.github.enbrain.loomlayeredyarn.appendtojavadoc.AppendToJavadocMappings
 import io.github.enbrain.loomlayeredyarn.diff.DiffMappingsLayer;
 import io.github.enbrain.loomlayeredyarn.diff.DiffMappingsSpecBuilder;
 import io.github.enbrain.loomlayeredyarn.unpick.UnpickEnabledDependency;
-import io.github.enbrain.loomlayeredyarn.unpick.UnpickLayer;
+import io.github.enbrain.loomlayeredyarn.unpick.UnpickLayerImpl;
 import io.github.enbrain.loomlayeredyarn.unpick.UnpickSpec;
 import io.github.enbrain.loomlayeredyarn.util.GithubDependency;
 import io.github.enbrain.loomlayeredyarn.util.LocalDirectorySpec;
@@ -70,7 +70,7 @@ public class LayeredYarnExtension {
         return builder.build();
     }
 
-    public MappingsSpec<UnpickLayer> unpick(String dependencyNotation) {
+    public MappingsSpec<UnpickLayerImpl> unpick(String dependencyNotation) {
         Dependency dependency = this.project.getDependencies().create(dependencyNotation);
         String constantsDependency = "%s:%s:%s:constants".formatted(dependency.getGroup(), dependency.getName(), dependency.getVersion());
         return new UnpickSpec(dependencyNotation, constantsDependency);

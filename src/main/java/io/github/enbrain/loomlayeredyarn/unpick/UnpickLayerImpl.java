@@ -6,11 +6,12 @@ import java.nio.file.Path;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.loom.api.mappings.layered.MappingLayer;
+import net.fabricmc.loom.configuration.providers.mappings.extras.unpick.UnpickLayer;
 import net.fabricmc.loom.configuration.providers.mappings.file.FileMappingsLayer;
 import net.fabricmc.loom.util.ZipUtils;
 import net.fabricmc.mappingio.MappingVisitor;
 
-public record UnpickLayer(Path sourcePath, String constantsDependency) implements MappingLayer, net.fabricmc.loom.configuration.providers.mappings.extras.unpick.UnpickLayer {
+public record UnpickLayerImpl(Path sourcePath, String constantsDependency) implements MappingLayer, UnpickLayer {
     @Override
     public void visit(MappingVisitor mappingVisitor) throws IOException {
         // Nothing to do here

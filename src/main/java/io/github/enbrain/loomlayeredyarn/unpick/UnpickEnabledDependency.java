@@ -20,6 +20,8 @@ import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingsDepende
 import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingsProcessor;
 
 public class UnpickEnabledDependency implements FileCollectionDependency {
+    private static final String MAPPINGS_CONSTANTS = net.fabricmc.loom.util.Constants.Configurations.MAPPING_CONSTANTS;
+
     private static final Field MAPPING_CONTEXT_FIELD;
     private static final Field LAYERED_MAPPING_SPEC_FIELD;
 
@@ -58,8 +60,11 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
 
     @Override
     public Set<File> resolve() {
-        Set<File> files = layeredMappingsDependency.resolve();
+        this.fixConstantsDependencies();
+        return layeredMappingsDependency.resolve();
+    }
 
+    private void fixConstantsDependencies() {
         MappingContext mappingContext;
         LayeredMappingSpec layeredMappingSpec;
 
@@ -73,10 +78,10 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
         LayeredMappingsProcessor processor = new LayeredMappingsProcessor(layeredMappingSpec);
         List<MappingLayer> layers = processor.resolveLayers(mappingContext);
 
-        UnpickLayer lastUnpickLayer = null;
+        UnpickLayerImpl lastUnpickLayer = null;
 
         for (MappingLayer layer : layers) {
-            if (layer instanceof UnpickLayer unpickLayer) {
+            if (layer instanceof UnpickLayerImpl unpickLayer) {
                 lastUnpickLayer = unpickLayer;
             }
         }
@@ -84,13 +89,11 @@ public class UnpickEnabledDependency implements FileCollectionDependency {
         if (lastUnpickLayer != null) {
             String constantsDependency = lastUnpickLayer.constantsDependency();
 
-            this.project.getConfigurations().getByName("mappingsConstants").withDependencies(dependencies -> {
+            this.project.getConfigurations().getByName(MAPPINGS_CONSTANTS).withDependencies(dependencies -> {
                 dependencies.removeIf(dep -> dep.getGroup().equals("loom") && dep.getName().equals("mappings"));
                 dependencies.add(this.project.getDependencies().create(constantsDependency));
             });
         }
-
-        return files;
     }
 
     @Override
